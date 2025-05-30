@@ -18,3 +18,15 @@ class HTMLNode():
     
     def __repr__(self):
         return f"(tag={self.tag}\n value={self.value}\n children={self.children}\n props={self.props})"
+    
+
+class LeafNode(HTMLNode):
+    def __init__(self, tag, value, props=None): #It should not allow for any children, The value data member should be required
+        super().__init__(tag, value, props=props)
+
+    def to_html(self): #method that renders a leaf node as an HTML string (by returning a string)
+        if self.value is None: #f the leaf node has no value, it should raise a ValueError. All leaf nodes must have a value.
+            raise ValueError("All leaf nodes must have a value")
+        if self.tag is None: #If there is no tag (e.g. it's None), the value should be returned as raw text.
+            return self.value #Otherwise, it should render an HTML tag
+        return f"<{self.tag}{self.props_to_html()}>{self.value}<\\{self.tag}>"
