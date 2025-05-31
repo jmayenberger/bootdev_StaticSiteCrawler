@@ -1,3 +1,4 @@
+
 class HTMLNode():
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag #A string representing the HTML tag name (e.g. "p", "a", "h1", etc.)
@@ -16,6 +17,14 @@ class HTMLNode():
             output += f" {key}=\"{self.props[key]}\""
         return output
     
+    def __eq__(self, other): #True if all of the properties of two HTMLNode objects are equal
+        if (
+            self.tag == other.tag and self.value == other.value and self.children == other.children and self.props == other.props
+        ):
+            return True
+        else:
+            return False
+    
     def __repr__(self):
         return f"HTMLNode({self.tag}, {self.value}, children: {self.children}, {self.props})"
     
@@ -29,7 +38,7 @@ class LeafNode(HTMLNode):
             raise ValueError("invalid HTML for LeafNode: no value")
         if self.tag is None: #If there is no tag (e.g. it's None), the value should be returned as raw text.
             return self.value #Otherwise, it should render an HTML tag
-        return f"<{self.tag}{self.props_to_html()}>{self.value}<\\{self.tag}>"
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
     
     def __repr__(self):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
@@ -46,8 +55,8 @@ class ParentNode(HTMLNode):
             raise ValueError("invalid HTML for ParentNode: no children")
         html_string = ""
         for child in self.children:
-            html_string += child.to_html
-        return f"<self.tag>{html_string}<\\{self.tag}>"
+            html_string += child.to_html()
+        return f"<{self.tag}>{html_string}</{self.tag}>"
     
     def __repr__(self):
         return f"ParentNode({self.tag}, children: {self.children}, {self.props})"

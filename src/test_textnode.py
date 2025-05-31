@@ -1,5 +1,4 @@
 import unittest
-
 from textnode import TextNode, TextType
 
 
@@ -7,7 +6,7 @@ class TestTextNode(unittest.TestCase):
     def test_eq(self):
         node0 = TextNode("This is a text node", TextType.BOLD)
         node1 = TextNode("This is a text node", TextType.BOLD)
-        node2 = TextNode("This is a text node", TextType.NORMAL)
+        node2 = TextNode("This is a text node", TextType.TEXT)
         node3 = TextNode("This is another text", TextType.BOLD)
         node4 = TextNode("I am testing", TextType.LINK, "www.dummy.org")
         node5 = TextNode("I am testing", TextType.LINK, "www.otherdummy.org")
