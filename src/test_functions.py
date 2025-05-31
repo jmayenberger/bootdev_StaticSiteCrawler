@@ -34,64 +34,94 @@ class TestFunctions(unittest.TestCase):
                     self.assertNotEqual(nodes_lst[i], nodes_lst[j])
 
     def test_split_nodes_delimiter(self):
-        input0 = [[TextNode("This is text with a `code block` word", TextType.TEXT)], "`", TextType.CODE]
-        expect0 = [
+        lst_inputs = []
+        lst_expects = []
+        lst_inputs.append([[TextNode("This is text with a `code block` word", TextType.TEXT)], "`", TextType.CODE])
+        lst_expects.append([
             TextNode("This is text with a ", TextType.TEXT),
             TextNode("code block", TextType.CODE),
             TextNode(" word", TextType.TEXT),
-        ]
-        input1 = [[TextNode("This is text with a **bold** word", TextType.TEXT)], "**", TextType.BOLD]
-        expect1 = [
+        ])
+        lst_inputs.append([[TextNode("This is text with a **bold** word", TextType.TEXT)], "**", TextType.BOLD])
+        lst_expects.append([
             TextNode("This is text with a ", TextType.TEXT),
             TextNode("bold", TextType.BOLD),
             TextNode(" word", TextType.TEXT),
-        ]
-        input2 = [[TextNode("This is text with an _italic_ word", TextType.TEXT)], "_", TextType.ITALIC]
-        expect2 = [
+        ])
+        lst_inputs.append([[TextNode("This is text with an _italic_ word", TextType.TEXT)], "_", TextType.ITALIC])
+        lst_expects.append([
             TextNode("This is text with an ", TextType.TEXT),
             TextNode("italic", TextType.ITALIC),
             TextNode(" word", TextType.TEXT),
-        ]
-        input3 = [[TextNode("This is text without a delimiter", TextType.TEXT)], "", TextType.TEXT]
-        expect3 = [
+        ])
+        lst_inputs.append([[TextNode("This is text without a delimiter", TextType.TEXT)], "", TextType.TEXT])
+        lst_expects.append([
             TextNode("This is text without a delimiter", TextType.TEXT),
-        ]
-        input4 = [[TextNode("`code block`", TextType.TEXT)], "`", TextType.CODE]
-        expect4 = [TextNode("code block", TextType.CODE)]
-        input5 = [[TextNode("**bold**", TextType.TEXT)], "**", TextType.BOLD]
-        expect5 = [TextNode("bold", TextType.BOLD)]
-        input6 = [[TextNode("_italic_", TextType.TEXT)], "_", TextType.ITALIC]
-        expect6 = [TextNode("italic", TextType.ITALIC)]
-        input7 = [[input0[0][0], input4[0][0]], "`", TextType.CODE]
-        expect7 = expect0.copy()
-        expect7.extend(expect4)
-        input8 = [[input1[0][0], input5[0][0]], "**", TextType.BOLD]
-        expect8 = expect1.copy()
-        expect8.extend(expect5)
-        input9 = [[input2[0][0], input6[0][0]], "_", TextType.ITALIC]
-        expect9 = expect2.copy()
-        expect9.extend(expect6)
-        lst_inputs = [input0, input1, input2, input3, input4, input5, input6, input7, input8, input9]
-        lst_expects = [expect0, expect1, expect2, expect3, expect4, expect5, expect6, expect7, expect8, expect9]
+        ])
+        lst_inputs.append([[TextNode("`code block`", TextType.TEXT)], "`", TextType.CODE])
+        lst_expects.append([TextNode("code block", TextType.CODE)])
+        lst_inputs.append([[TextNode("**bold**", TextType.TEXT)], "**", TextType.BOLD])
+        lst_expects.append([TextNode("bold", TextType.BOLD)])
+        lst_inputs.append([[TextNode("_italic_", TextType.TEXT)], "_", TextType.ITALIC])
+        lst_expects.append([TextNode("italic", TextType.ITALIC)])
+        lst_inputs.append([[lst_inputs[0][0][0], lst_inputs[4][0][0]], "`", TextType.CODE])
+        lst_expects.append(lst_expects[0].copy())
+        lst_expects[7].extend(lst_expects[4])
+        lst_inputs.append([[lst_inputs[1][0][0], lst_inputs[5][0][0]], "**", TextType.BOLD])
+        lst_expects.append(lst_expects[1].copy())
+        lst_expects[8].extend(lst_expects[5])
+        lst_inputs.append([[lst_inputs[2][0][0], lst_inputs[6][0][0]], "_", TextType.ITALIC])
+        lst_expects.append(lst_expects[2].copy())
+        lst_expects[9].extend(lst_expects[6])
+        lst_inputs.append([[TextNode("there is no code here", TextType.TEXT)], lst_inputs[0][1], lst_inputs[0][2]])
+        lst_expects.append([TextNode("there is no code here", TextType.TEXT)])
+        lst_inputs.append([[TextNode("there is the wrong **delimiter** here", TextType.TEXT)], lst_inputs[0][1], lst_inputs[0][2]])
+        lst_expects.append([TextNode("there is the wrong **delimiter** here", TextType.TEXT)])
+        #todo: add double delimiter inupt here
+        lst_inputs.append([[TextNode("**so** much **bold**", TextType.TEXT),
+                            TextNode("text **in** here **I**", TextType.TEXT),
+                            TextNode("**am** going **to** suffocate", TextType.TEXT)],
+                           "**", TextType.BOLD])
+        lst_expects.append([
+            TextNode("so", TextType.BOLD),
+            TextNode(" much ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode("text ", TextType.TEXT),
+            TextNode("in", TextType.BOLD),
+            TextNode(" here ", TextType.TEXT),
+            TextNode("I", TextType.BOLD),
+            TextNode("am", TextType.BOLD),
+            TextNode(" going ", TextType.TEXT),
+            TextNode("to", TextType.BOLD),
+            TextNode(" suffocate", TextType.TEXT),
+        ])
         for i in range(0, len(lst_inputs)):
             self.assertEqual(split_nodes_delimiter(*lst_inputs[i]), lst_expects[i])
+
+        node = TextNode("**bold** and _italic_", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+            ],
+            new_nodes,
+        )
         
-        error_input0 = [input0[0], input0[1], input1[2]]
-        error_expect0 = ValueError
-        error_input1 = [input0[0], input1[1], input0[2]]
-        error_expect1 = ValueError
-        error_input2 = [input0[0], input0[1], TextType.LINK]
-        error_expect2 = NotImplementedError
-        error_input3 = [[TextNode("there is no code here", TextType.TEXT)], input0[1], input0[2]]
-        error_expect3 = ValueError
-        error_input4 = [[TextNode("there is the wrong **delimiter** here", TextType.TEXT)], input0[1], input0[2]]
-        error_expect4 = ValueError
-        error_input5 = [[TextNode("there are `too few delimiters here", TextType.TEXT)], input0[1], input0[2]]
-        error_expect5 = ValueError
-        error_input6 = [[TextNode("there `are` too many `delimiters here", TextType.TEXT)], input0[1], input0[2]]
-        error_expect6 = ValueError
-        lst_error_inputs = [error_input0, error_input1, error_input2, error_input3, error_input4, error_input5, error_input6]
-        lst_error_expects = [error_expect0, error_expect1, error_expect2, error_expect3, error_expect4, error_expect5, error_expect6]
+        lst_error_inputs = []
+        lst_error_expects = []
+        lst_error_inputs.append([lst_inputs[0][0], lst_inputs[0][1], lst_inputs[1][2]])
+        lst_error_expects.append(ValueError)
+        lst_error_inputs.append([lst_inputs[0][0], lst_inputs[1][1], lst_inputs[0][2]])
+        lst_error_expects.append(ValueError)
+        lst_error_inputs.append([lst_inputs[0][0], lst_inputs[0][1], TextType.LINK])
+        lst_error_expects.append(NotImplementedError)
+        lst_error_inputs.append([[TextNode("there are `too few delimiters here", TextType.TEXT)], lst_inputs[0][1], lst_inputs[0][2]])
+        lst_error_expects.append(ValueError)
+        lst_error_inputs.append([[TextNode("there `are` too many `delimiters here", TextType.TEXT)], lst_inputs[0][1], lst_inputs[0][2]])
+        lst_error_expects.append(ValueError)
         for i in range(0, len(lst_error_inputs)):
             self.assertRaises(lst_error_expects[i], split_nodes_delimiter, *lst_error_inputs[i])
 

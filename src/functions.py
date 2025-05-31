@@ -41,20 +41,19 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     
     new_nodes = []
     for node in old_nodes:
-        match node.text_type:
-            case TextType.TEXT:
-                split_lst = node.text.split(delimiter)
-                match len(split_lst):
-                    case 3:
-                        if len(split_lst[0]) != 0:
-                            new_nodes.append(TextNode(split_lst[0], TextType.TEXT))
-                        new_nodes.append(TextNode(split_lst[1], text_type))
-                        if len(split_lst[2]) != 0:
-                            new_nodes.append(TextNode(split_lst[2], TextType.TEXT))
-                    case _:
-                        raise ValueError(f"Wrong number of delimiter \"{delimiter}\" in \"{node.text}\"")
-            case _:
-                new_nodes.append(node)
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        split_lst = node.text.split(delimiter)
+        if len(split_lst) % 2 == 0:
+            raise ValueError(f"Wrong number of delimiter \"{delimiter}\" in \"{node.text}\"")
+        for i in range(0, len(split_lst)):
+                if split_lst[i] == "":
+                    continue
+                elif i % 2 == 0:
+                    new_nodes.append(TextNode(split_lst[i], TextType.TEXT))
+                else:
+                    new_nodes.append(TextNode(split_lst[i], text_type))
     return new_nodes
 
 
