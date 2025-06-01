@@ -3,6 +3,15 @@ from textnode import TextNode, TextType
 from htmlnode import LeafNode
 
 
+def text_to_textnodes(text):
+    textnodes = [TextNode(text, TextType.TEXT)]
+    textnodes = split_nodes_delimiter(textnodes, "**", TextType.BOLD)
+    textnodes = split_nodes_delimiter(textnodes, "_", TextType.ITALIC)
+    textnodes = split_nodes_delimiter(textnodes, "`", TextType.CODE)
+    textnodes = split_nodes_image(textnodes)
+    textnodes = split_nodes_link(textnodes)
+    return textnodes
+
 def text_node_to_html_node(text_node):
     match text_node.text_type:
         case TextType.TEXT:
@@ -61,6 +70,9 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 def split_nodes_image(old_nodes):
         new_nodes = []
         for node in old_nodes:
+            if node.text_type != TextType.TEXT:
+                new_nodes.append(node)
+                continue
             text = node.text
             images = extract_markdown_images(text)
             for image in images:
@@ -69,14 +81,17 @@ def split_nodes_image(old_nodes):
                     new_nodes.append(TextNode(text_split[0], node.text_type))
                 new_nodes.append(TextNode(image[0],TextType.IMAGE, image[1]))
                 text = "".join(text_split[1:])
-        if text != "":
-            new_nodes.append(TextNode(text, node.text_type))
+            if text != "":
+                new_nodes.append(TextNode(text, node.text_type))
 
         return new_nodes
 
 def split_nodes_link(old_nodes):
         new_nodes = []
         for node in old_nodes:
+            if node.text_type != TextType.TEXT:
+                new_nodes.append(node)
+                continue
             text = node.text
             links = extract_markdown_links(text)
             for link in links:
@@ -85,8 +100,8 @@ def split_nodes_link(old_nodes):
                     new_nodes.append(TextNode(text_split[0], node.text_type))
                 new_nodes.append(TextNode(link[0],TextType.LINK, link[1]))
                 text = "".join(text_split[1:])
-        if text != "":
-            new_nodes.append(TextNode(text, node.text_type))
+            if text != "":
+                new_nodes.append(TextNode(text, node.text_type))
 
         return new_nodes
 

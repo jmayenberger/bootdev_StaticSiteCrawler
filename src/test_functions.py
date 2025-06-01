@@ -3,12 +3,59 @@ from textnode import TextNode, TextType
 from htmlnode import LeafNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
-    extract_markdown_links, split_nodes_image, split_nodes_link
+    extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
     )
 
 
 
 class TestFunctions(unittest.TestCase):
+    def test_text_to_textnodes(self):
+        lst_texts = []
+        lst_expects = []
+        lst_texts.append("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
+        lst_expects.append([
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev")
+        ])
+        lst_texts.append("**bold**")
+        lst_expects.append([TextNode("bold", TextType.BOLD)])
+        lst_texts.append("_italic_")
+        lst_expects.append([TextNode("italic", TextType.ITALIC)])
+        lst_texts.append("`code`")
+        lst_expects.append([TextNode("code", TextType.CODE)])
+        lst_texts.append("[link](here)")
+        lst_expects.append([TextNode("link", TextType.LINK, "here")])
+        lst_texts.append("![image](here)")
+        lst_expects.append([TextNode("image", TextType.IMAGE, "here")])
+        lst_texts.append("![first](image) then **bold** _and then _[a](link)")
+        lst_expects.append([
+            TextNode("first", TextType.IMAGE, "image"),
+            TextNode(" then ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" ", TextType.TEXT),
+            TextNode("and then ", TextType.ITALIC),
+            TextNode("a", TextType.LINK, "link")
+        ])
+
+        for (i, text) in enumerate(lst_texts):
+            self.assertEqual(text_to_textnodes(text), lst_expects[i])
+
+        lst_error_texts = []
+        lst_errors_expects = []
+        lst_error_texts.append("**bold but not delimiter")
+        lst_errors_expects.append(ValueError)
+
+        for (i, error_text) in enumerate(lst_error_texts):
+            self.assertRaises(lst_errors_expects[i], text_to_textnodes, error_text)
+
     def test_text_node_to_html_node(self):
         node0 = text_node_to_html_node(TextNode("This is a text node", TextType.TEXT))
         expect0 = LeafNode(None, "This is a text node")
@@ -139,10 +186,10 @@ class TestFunctions(unittest.TestCase):
             TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
             TextNode(" and following text", TextType.TEXT)
         ])
-        lst_nodes.append([TextNode("![image](https://i.imgur.com/zjjcJKZ.png) and the same again ![image](https://i.imgur.com/zjjcJKZ.png)",TextType.ITALIC)])
+        lst_nodes.append([TextNode("![image](https://i.imgur.com/zjjcJKZ.png) and the same again ![image](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
         lst_expects.append([
             TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
-            TextNode(" and the same again ", TextType.ITALIC),
+            TextNode(" and the same again ", TextType.TEXT),
             TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")
         ])
         lst_nodes.append([TextNode("![image](https://i.imgur.com/zjjcJKZ.png)![image](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
@@ -152,8 +199,8 @@ class TestFunctions(unittest.TestCase):
         ])
         lst_nodes.append([TextNode("",TextType.TEXT)])
         lst_expects.append([])
-        lst_nodes.append([TextNode("only text", TextType.BOLD)])
-        lst_expects.append([TextNode("only text", TextType.BOLD)])
+        lst_nodes.append([TextNode("only text", TextType.TEXT)])
+        lst_expects.append([TextNode("only text", TextType.TEXT)])
 
         for (i, node) in enumerate(lst_nodes):
             self.assertEqual(split_nodes_image(node), lst_expects[i])
@@ -169,10 +216,10 @@ class TestFunctions(unittest.TestCase):
             TextNode("second link", TextType.LINK, "https://i.imgur.com/3elNhQu.png"),
             TextNode(" and following text", TextType.TEXT)
         ])
-        lst_nodes.append([TextNode("[link](https://i.imgur.com/zjjcJKZ.png) and the same again [link](https://i.imgur.com/zjjcJKZ.png)",TextType.ITALIC)])
+        lst_nodes.append([TextNode("[link](https://i.imgur.com/zjjcJKZ.png) and the same again [link](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
         lst_expects.append([
             TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
-            TextNode(" and the same again ", TextType.ITALIC),
+            TextNode(" and the same again ", TextType.TEXT),
             TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png")
         ])
         lst_nodes.append([TextNode("[link](https://i.imgur.com/zjjcJKZ.png)[link](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
@@ -182,8 +229,8 @@ class TestFunctions(unittest.TestCase):
         ])
         lst_nodes.append([TextNode("",TextType.TEXT)])
         lst_expects.append([])
-        lst_nodes.append([TextNode("only text", TextType.BOLD)])
-        lst_expects.append([TextNode("only text", TextType.BOLD)])
+        lst_nodes.append([TextNode("only text", TextType.TEXT)])
+        lst_expects.append([TextNode("only text", TextType.TEXT)])
 
         for (i, node) in enumerate(lst_nodes):
             self.assertEqual(split_nodes_link(node), lst_expects[i])
