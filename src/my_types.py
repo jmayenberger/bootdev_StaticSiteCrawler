@@ -10,7 +10,7 @@ class TextType(Enum):
     IMAGE = "url"
 
 
-class MarkdownType(Enum):
+class BlockType(Enum):
     PARAGRAPH = "paragraph"
     HEADING = "heading"
     CODE = "code"

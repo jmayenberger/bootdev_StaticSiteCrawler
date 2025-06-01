@@ -1,6 +1,47 @@
 import re
-from my_types import TextType
+from my_types import TextType, BlockType
 from nodes import TextNode, LeafNode
+
+def block_to_blocktype(block):
+    if block == "":
+        return BlockType.PARAGRAPH
+    lines = block.split("\n")
+    match block[0]:
+        case "#":
+            for letter in block[:min(7, len(block))]:
+                if letter == "#":
+                    continue
+                elif letter == " ":
+                    return BlockType.HEADING
+                else:
+                    return BlockType.PARAGRAPH
+            return BlockType.PARAGRAPH
+        case "`":
+            if len(block) < 6:
+                return BlockType.PARAGRAPH
+            if all(x == "`" for x in block[:3] + block[-3:]):
+                return BlockType.CODE
+            else:
+                return BlockType.PARAGRAPH
+        case ">":
+            if all(len(line) > 0 for line in lines) and all(line[0] == ">" for line in lines):
+                return BlockType.QUOTE
+            else:
+                return BlockType.PARAGRAPH
+        case "-":
+            if all(len(line) > 1 for line in lines) and all(line[:2] == "- " for line in lines):
+                return BlockType.UNORDERED_LIST
+            else:
+                return BlockType.PARAGRAPH
+        case "1":
+            if any(len(line) <= 2 for line in lines):
+                return BlockType.PARAGRAPH
+            for (i, line) in enumerate(lines):
+                if line[:3] != f"{i+1}. ":
+                    return BlockType.PARAGRAPH
+            return BlockType.ORDERED_LIST
+        case _:
+            return BlockType.PARAGRAPH
 
 def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")
@@ -35,7 +76,6 @@ def text_node_to_html_node(text_node):
         case _:
             raise ValueError(f"invalid text type for TextNode: {text_node.text_type}")
 
-# takes a list of "old nodes", a delimiter, and a text type. returns a new list of nodes, where any "text" type nodes in the input list are (potentially) split into multiple nodes based on the syntax        
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     match text_type:
         case TextType.TEXT:

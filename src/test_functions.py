@@ -1,14 +1,95 @@
 import unittest
-from my_types import TextType
+from my_types import TextType, BlockType
 from nodes import LeafNode, TextNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
     extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes,
-    markdown_to_blocks)
+    markdown_to_blocks, block_to_blocktype)
 
 
 
 class TestFunctions(unittest.TestCase):
+    def test_block_to_blocktype(self):
+        lst_blocks = []
+        lst_expected = []
+        lst_blocks.append("")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("nothing here\nor here")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("######not a heading")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("##not a heading either")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("####### also not a heading")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("```not a code block``")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("`not a code block```")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("`````a")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append(">not\na\n>quote block")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append(">also\n\n>not a quote block")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("-")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("- this\n-is\n- not a list")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("- this\n\n- is also not a list")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("- this is\nnot a list")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("2. this\n3. list is not\n4. ordered")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("1. this\n3. list is unordered")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("1. this\n2. list is also\n3.unordered")
+        lst_expected.append(BlockType.PARAGRAPH)
+        lst_blocks.append("# ")
+        lst_expected.append(BlockType.HEADING)
+        lst_blocks.append("### ")
+        lst_expected.append(BlockType.HEADING)
+        lst_blocks.append("###### ")
+        lst_expected.append(BlockType.HEADING)
+        lst_blocks.append("# this is a heading")
+        lst_expected.append(BlockType.HEADING)
+        lst_blocks.append("###### this is another heading")
+        lst_expected.append(BlockType.HEADING)
+        lst_blocks.append("``````")
+        lst_expected.append(BlockType.CODE)
+        lst_blocks.append("```this is a code block```")
+        lst_expected.append(BlockType.CODE)
+        lst_blocks.append("```this is another\ncode block```")
+        lst_expected.append(BlockType.CODE)
+        lst_blocks.append(">this is a quote block")
+        lst_expected.append(BlockType.QUOTE)
+        lst_blocks.append(">")
+        lst_expected.append(BlockType.QUOTE)
+        lst_blocks.append(">\n>\n>")
+        lst_expected.append(BlockType.QUOTE)
+        lst_blocks.append(">this are\n>multiple lines\n>in a quote block")
+        lst_expected.append(BlockType.QUOTE)
+        lst_blocks.append("- ")
+        lst_expected.append(BlockType.UNORDERED_LIST)
+        lst_blocks.append("- \n- \n- ")
+        lst_expected.append(BlockType.UNORDERED_LIST)
+        lst_blocks.append("- unorderd list")
+        lst_expected.append(BlockType.UNORDERED_LIST)
+        lst_blocks.append("- this\n- is an\n- unordered list")
+        lst_expected.append(BlockType.UNORDERED_LIST)
+        lst_blocks.append("1. ")
+        lst_expected.append(BlockType.ORDERED_LIST)
+        lst_blocks.append("1. \n2. \n3. ")
+        lst_expected.append(BlockType.ORDERED_LIST)
+        lst_blocks.append("1. ordered list")
+        lst_expected.append(BlockType.ORDERED_LIST)
+        lst_blocks.append("1. this\n2. is a\n3. ordered list")
+        lst_expected.append(BlockType.ORDERED_LIST)
+
+        for (i, block) in enumerate(lst_blocks):
+            self.assertEqual(block_to_blocktype(block), lst_expected[i])
+
     def test_markdown_to_blocks(self):
         lst_markdowns = []
         lst_expects = []
