@@ -3,7 +3,7 @@ from textnode import TextNode, TextType
 from htmlnode import LeafNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
-    extract_markdown_links
+    extract_markdown_links, split_nodes_image, split_nodes_link
     )
 
 
@@ -128,6 +128,66 @@ class TestFunctions(unittest.TestCase):
         for i in range(0, len(lst_error_inputs)):
             self.assertRaises(lst_error_expects[i], split_nodes_delimiter, *lst_error_inputs[i])
 
+    def test_split_nodes_image(self):
+        lst_nodes = []
+        lst_expects = []
+        lst_nodes.append([TextNode("This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png) and following text",TextType.TEXT)])
+        lst_expects.append([
+            TextNode("This is text with an ", TextType.TEXT),
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" and another ", TextType.TEXT),
+            TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            TextNode(" and following text", TextType.TEXT)
+        ])
+        lst_nodes.append([TextNode("![image](https://i.imgur.com/zjjcJKZ.png) and the same again ![image](https://i.imgur.com/zjjcJKZ.png)",TextType.ITALIC)])
+        lst_expects.append([
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" and the same again ", TextType.ITALIC),
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")
+        ])
+        lst_nodes.append([TextNode("![image](https://i.imgur.com/zjjcJKZ.png)![image](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
+        lst_expects.append([
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png")
+        ])
+        lst_nodes.append([TextNode("",TextType.TEXT)])
+        lst_expects.append([])
+        lst_nodes.append([TextNode("only text", TextType.BOLD)])
+        lst_expects.append([TextNode("only text", TextType.BOLD)])
+
+        for (i, node) in enumerate(lst_nodes):
+            self.assertEqual(split_nodes_image(node), lst_expects[i])
+
+    def test_split_nodes_link(self):
+        lst_nodes = []
+        lst_expects = []
+        lst_nodes.append([TextNode("This is text with a [link](https://i.imgur.com/zjjcJKZ.png) and another [second link](https://i.imgur.com/3elNhQu.png) and following text",TextType.TEXT)])
+        lst_expects.append([
+            TextNode("This is text with a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" and another ", TextType.TEXT),
+            TextNode("second link", TextType.LINK, "https://i.imgur.com/3elNhQu.png"),
+            TextNode(" and following text", TextType.TEXT)
+        ])
+        lst_nodes.append([TextNode("[link](https://i.imgur.com/zjjcJKZ.png) and the same again [link](https://i.imgur.com/zjjcJKZ.png)",TextType.ITALIC)])
+        lst_expects.append([
+            TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" and the same again ", TextType.ITALIC),
+            TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png")
+        ])
+        lst_nodes.append([TextNode("[link](https://i.imgur.com/zjjcJKZ.png)[link](https://i.imgur.com/zjjcJKZ.png)",TextType.TEXT)])
+        lst_expects.append([
+            TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode("link", TextType.LINK, "https://i.imgur.com/zjjcJKZ.png")
+        ])
+        lst_nodes.append([TextNode("",TextType.TEXT)])
+        lst_expects.append([])
+        lst_nodes.append([TextNode("only text", TextType.BOLD)])
+        lst_expects.append([TextNode("only text", TextType.BOLD)])
+
+        for (i, node) in enumerate(lst_nodes):
+            self.assertEqual(split_nodes_link(node), lst_expects[i])
+
     def test_extract_markdown_images(self):
         lst_texts = []
         lst_expects = []
@@ -141,7 +201,7 @@ class TestFunctions(unittest.TestCase):
         for (i, text) in enumerate(lst_texts):
             self.assertEqual(extract_markdown_images(text), lst_expects[i])
 
-    def text_extract_markdown_links(self):
+    def test_extract_markdown_links(self):
         lst_texts = []
         lst_expects = []
         lst_texts.append("This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")

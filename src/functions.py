@@ -58,6 +58,38 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     new_nodes.append(TextNode(split_lst[i], text_type))
     return new_nodes
 
+def split_nodes_image(old_nodes):
+        new_nodes = []
+        for node in old_nodes:
+            text = node.text
+            images = extract_markdown_images(text)
+            for image in images:
+                text_split = text.split(f"![{image[0]}]({image[1]})")
+                if text_split[0] != "":
+                    new_nodes.append(TextNode(text_split[0], node.text_type))
+                new_nodes.append(TextNode(image[0],TextType.IMAGE, image[1]))
+                text = "".join(text_split[1:])
+        if text != "":
+            new_nodes.append(TextNode(text, node.text_type))
+
+        return new_nodes
+
+def split_nodes_link(old_nodes):
+        new_nodes = []
+        for node in old_nodes:
+            text = node.text
+            links = extract_markdown_links(text)
+            for link in links:
+                text_split = text.split(f"[{link[0]}]({link[1]})")
+                if text_split[0] != "":
+                    new_nodes.append(TextNode(text_split[0], node.text_type))
+                new_nodes.append(TextNode(link[0],TextType.LINK, link[1]))
+                text = "".join(text_split[1:])
+        if text != "":
+            new_nodes.append(TextNode(text, node.text_type))
+
+        return new_nodes
+
 def extract_markdown_images(text):
     return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
