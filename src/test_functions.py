@@ -1,7 +1,10 @@
 import unittest
 from textnode import TextNode, TextType
 from htmlnode import LeafNode
-from functions import text_node_to_html_node, split_nodes_delimiter
+from functions import (
+    text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
+    extract_markdown_links
+    )
 
 
 
@@ -124,6 +127,32 @@ class TestFunctions(unittest.TestCase):
         lst_error_expects.append(ValueError)
         for i in range(0, len(lst_error_inputs)):
             self.assertRaises(lst_error_expects[i], split_nodes_delimiter, *lst_error_inputs[i])
+
+    def test_extract_markdown_images(self):
+        lst_texts = []
+        lst_expects = []
+        lst_texts.append("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+        lst_expects.append([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")])
+        lst_texts.append("![edge]()![](case)")
+        lst_expects.append([("edge", ""), ("","case")])
+        lst_texts.append("![wrong]!(syntax)(all)![over]the(place)and[here](a link)")
+        lst_expects.append([])
+        
+        for (i, text) in enumerate(lst_texts):
+            self.assertEqual(extract_markdown_images(text), lst_expects[i])
+
+    def text_extract_markdown_links(self):
+        lst_texts = []
+        lst_expects = []
+        lst_texts.append("This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)")
+        lst_expects.append([("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")])
+        lst_texts.append("[edge]()[](case)")
+        lst_expects.append([("edge", ""), ("","case")])
+        lst_texts.append("[wrong]!(syntax)(all)[over](the(place)and![here](an image)")
+        lst_expects.append([])
+        
+        for (i, text) in enumerate(lst_texts):
+            self.assertEqual(extract_markdown_links(text), lst_expects[i])
 
 
 if __name__ == "__main__":
