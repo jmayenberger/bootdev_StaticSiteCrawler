@@ -2,6 +2,12 @@ import re
 from textnode import TextNode, TextType
 from htmlnode import LeafNode
 
+def markdown_to_blocks(markdown):
+    blocks = markdown.split("\n\n")
+    blocks = map(lambda string: string.strip(" \n"), blocks)
+    return list(filter(
+        lambda string: string != "", blocks
+    ))
 
 def text_to_textnodes(text):
     textnodes = [TextNode(text, TextType.TEXT)]

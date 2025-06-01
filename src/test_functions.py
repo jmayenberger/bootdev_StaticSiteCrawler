@@ -3,12 +3,41 @@ from textnode import TextNode, TextType
 from htmlnode import LeafNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
-    extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
+    extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes,
+    markdown_to_blocks
     )
 
 
 
 class TestFunctions(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        lst_markdowns = []
+        lst_expects = []
+        lst_markdowns.append("""
+This is **bolded** paragraph
+
+                             
+    This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line    
+
+- This is a list
+- with items
+""")
+        lst_expects.append([
+            "This is **bolded** paragraph",
+            "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+            "- This is a list\n- with items",
+        ])
+        lst_markdowns.append("single paragraph")
+        lst_expects.append(["single paragraph"])
+        lst_markdowns.append("")
+        lst_expects.append([])
+        lst_markdowns.append("\n\n\n\n\n   \n  \n\n  \n   \n      \n \n\n     ")
+        lst_expects.append([])
+
+        for (i, markdown) in enumerate(lst_markdowns):
+            self.assertEqual(markdown_to_blocks(markdown), lst_expects[i])
+
     def test_text_to_textnodes(self):
         lst_texts = []
         lst_expects = []
