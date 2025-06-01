@@ -1,6 +1,6 @@
 import re
-from textnode import TextNode, TextType
-from htmlnode import LeafNode
+from my_types import TextType
+from nodes import TextNode, LeafNode
 
 def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")

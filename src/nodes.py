@@ -1,4 +1,22 @@
 
+class TextNode():
+    def __init__(self, text, text_type, url=None):
+        self.text = text #The text content of the node
+        self.text_type = text_type #The type of text this node contains, which is a member of the TextType enum
+        self.url = url #The URL of the link or image, if the text is a link. Default to None if nothing is passed in.
+    
+    def __eq__(self, other): #True if all of the properties of two TextNode objects are equal
+        if (
+            self.text == other.text and self.text_type == other.text_type and self.url == other.url
+        ):
+            return True
+        else:
+            return False
+    
+    def __repr__(self): #returns a string representation of the TextNode object
+        return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
+
+
 class HTMLNode():
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag #A string representing the HTML tag name (e.g. "p", "a", "h1", etc.)

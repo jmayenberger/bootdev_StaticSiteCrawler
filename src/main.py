@@ -1,4 +1,5 @@
-from textnode import TextNode, TextType
+from nodes import TextNode
+from my_types import TextType
 
 def main():
     dummy = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
