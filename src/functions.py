@@ -1,6 +1,29 @@
 import re
+import os
+import shutil
 from my_types import TextType, BlockType
 from nodes import TextNode, LeafNode, ParentNode
+
+def copy_directory_recursive(source, destination):
+    if not os.path.exists(destination):
+        print(f"create directory {destination}")
+        os.mkdir(destination)
+
+    files = os.listdir(source)
+    for filename in files:
+        filepath = os.path.join(source, filename)
+        if os.path.isfile(filepath):
+            print(f"copy {filepath} to path {destination}")
+            shutil.copy(filepath, destination)
+        elif os.path.isdir(filepath):
+            new_destination = os.path.join(destination, filename)
+            copy_directory_recursive(filepath, new_destination)
+        else:
+            raise Exception(f"unexpected file type {filepath}")
+        
+    
+
+
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
