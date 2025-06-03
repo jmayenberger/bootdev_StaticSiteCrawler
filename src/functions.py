@@ -1,6 +1,72 @@
 import re
 from my_types import TextType, BlockType
-from nodes import TextNode, LeafNode
+from nodes import TextNode, LeafNode, ParentNode
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    parent = ParentNode("div", [])
+    for block in blocks:
+        block_type = block_to_blocktype(block)
+        match block_type:
+            case BlockType.PARAGRAPH:
+                block_parent = ParentNode("p", [])
+                textnodes = block_to_textnodes(block)
+                for textnode in textnodes:
+                    block_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                parent.children.append(block_parent) # type: ignore
+            case BlockType.HEADING:
+                count_sharp = len(block[:6].split(" ")[0])
+                block = block[count_sharp+1:]
+                block_parent = ParentNode(f"h{count_sharp}", [])
+                textnodes = block_to_textnodes(block)
+                for textnode in textnodes:
+                    block_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                parent.children.append(block_parent) # type: ignore
+            case BlockType.CODE:
+                block = block[4:-4]
+                block_parent = ParentNode("pre", [LeafNode("code", block)])
+                parent.children.append(block_parent) # type: ignore
+            case BlockType.QUOTE:
+                block_parent = ParentNode("blockquote", [])
+                textnodes = block_to_textnodes(block, 1)
+                for textnode in textnodes:
+                    block_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                parent.children.append(block_parent) # type: ignore
+            case BlockType.UNORDERED_LIST:
+                block_parent = ParentNode("ul", [])
+                lines = block.split("\n")
+                for (i, line) in enumerate(lines):
+                    line = line[2:]
+                    textnodes = text_to_textnodes(line)
+                    line_parent = ParentNode("li", [])
+                    for textnode in textnodes:
+                        line_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                    block_parent.children.append(line_parent) # type: ignore
+                parent.children.append(block_parent) # type: ignore
+            case BlockType.ORDERED_LIST:
+                block_parent = ParentNode("ol", [])
+                lines = block.split("\n")
+                for (i, line) in enumerate(lines):
+                    line = line[3:]
+                    textnodes = text_to_textnodes(line)
+                    line_parent = ParentNode("li", [])
+                    for textnode in textnodes:
+                        line_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                    block_parent.children.append(line_parent) # type: ignore
+                parent.children.append(block_parent) # type: ignore
+            case _:
+                raise ValueError(f"unexpected BlockType {block_type.value}")
+    return parent
+
+def block_to_textnodes(block, remove_begin_line=0):
+    textnodes = []
+    lines = block.split("\n")
+    for (i, line) in enumerate(lines):
+        line = line[remove_begin_line:]
+        if i != 0 and line[0] != " ":
+            line = " " + line #replaces single \n with whitespaces
+        textnodes += text_to_textnodes(line)
+    return textnodes
 
 def block_to_blocktype(block):
     if block == "":

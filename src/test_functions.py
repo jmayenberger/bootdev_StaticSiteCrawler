@@ -4,11 +4,57 @@ from nodes import LeafNode, TextNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
     extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes,
-    markdown_to_blocks, block_to_blocktype)
+    markdown_to_blocks, block_to_blocktype, markdown_to_html_node)
 
 
 
 class TestFunctions(unittest.TestCase):
+    def test_markdown_to_html_node(self):
+        lst_markdown = []
+        lst_expects = []
+        lst_markdown.append("""
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+## This is a **bold** heading
+
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+
+>I **hate**
+> HTML so much.
+>It is _dogshit_
+
+- this **is** my
+- my `unordered` list
+
+1. this **is** my
+2. my `ordered` list
+
+""")
+        lst_expects.append("<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p><h2>This is a <b>bold</b> heading</h2><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff</code></pre><blockquote>I <b>hate</b> HTML so much. It is <i>dogshit</i></blockquote><ul><li>this <b>is</b> my</li><li>my <code>unordered</code> list</li></ul><ol><li>this <b>is</b> my</li><li>my <code>ordered</code> list</li></ol></div>")
+        lst_markdown.append("")
+        lst_expects.append("<div></div>")
+        lst_markdown.append("###### a")
+        lst_expects.append("<div><h6>a</h6></div>")
+        lst_markdown.append("``````")
+        lst_expects.append("<div><pre><code></code></pre></div>")
+        lst_markdown.append(">")
+        lst_expects.append("<div><blockquote></blockquote></div>")
+        lst_markdown.append("- \n- a")
+        lst_expects.append("<div><ul><li></li><li>a</li></ul></div>")
+        lst_markdown.append("1. \n2. a")
+        lst_expects.append("<div><ol><li></li><li>a</li></ol></div>")
+
+
+        for (i, markdown) in enumerate(lst_markdown):
+            self.assertEqual(markdown_to_html_node(markdown).to_html(), lst_expects[i])
+
     def test_block_to_blocktype(self):
         lst_blocks = []
         lst_expected = []
