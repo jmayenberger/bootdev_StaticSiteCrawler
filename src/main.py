@@ -5,8 +5,7 @@ from functions import copy_directory_recursive, generate_page
 dir_path_static = "./static"
 dir_path_public = "./public"
 path_template = "./template.html"
-path_index = "./content/index.md"
-path_dest = "./public/index.html"
+dir_path_content = "./content"
 
 def main():
     print(f"Delete directory {dir_path_public}")
@@ -15,7 +14,12 @@ def main():
     
     copy_directory_recursive(dir_path_static, dir_path_public)
 
-    generate_page(path_index, path_template, path_dest)
+    print("Generating page...")
+    generate_page(
+        os.path.join(dir_path_content, "index.md"),
+        path_template,
+        os.path.join(dir_path_public, "index.html"),
+    )
 
 
 

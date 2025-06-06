@@ -18,20 +18,25 @@ class TestFunctions(unittest.TestCase):
         expects.append("this is a title")
         markdowns.append("# #hello hello")
         expects.append("#hello hello")
+        markdowns.append("# title\n# ignore this")
+        expects.append("title")
+        markdowns.append("first nothing\n# only now comes the title\n# not here")
+        expects.append("only now comes the title")
+
 
         error_markdowns = []
         error_expects = []
         error_markdowns.append("this is not a title")
-        error_expects.append(Exception)
+        error_expects.append(ValueError)
         error_markdowns.append("#this is also not a title")
-        error_expects.append(Exception)
+        error_expects.append(ValueError)
         error_markdowns.append("## this is not the right title")
-        error_expects.append(Exception)
+        error_expects.append(ValueError)
 
         for (i, markdown) in enumerate(markdowns):
             self.assertEqual(extract_title(markdown), expects[i])
-        for (i, error) in enumerate(error_markdowns):
-            self.assertRaises(error_expects[i], extract_title, *error)
+        for (i, error_input) in enumerate(error_markdowns):
+            self.assertRaises(error_expects[i], extract_title, error_input)
 
     def test_markdown_to_html_node(self):
         lst_markdown = []

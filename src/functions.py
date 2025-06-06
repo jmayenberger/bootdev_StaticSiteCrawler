@@ -18,15 +18,18 @@ def generate_page(from_path, template_path, dest_path):
     output_string = template.replace("{{ Title }}", title, 1)
     output_string = output_string.replace("{{ Content }}", html_string, 1)
     
+    dest_dir_path = os.path.dirname(dest_path)
+    if dest_dir_path != "":
+        os.makedirs(dest_dir_path, exist_ok=True)
     with open(dest_path, 'w') as dest_file:
         dest_file.write(output_string)
 
 def extract_title(markdown):
-    if len(markdown) < 2 or markdown[:2] != "# ":
-        raise Exception(f"not a valid markdown title: {markdown}")
-    if len(markdown) == 2:
-        return ""
-    return markdown[2:]
+    lines = markdown.split("\n")
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:]
+    raise ValueError(f"no markdown title found")
 
 def copy_directory_recursive(source, destination):
     if not os.path.exists(destination):
