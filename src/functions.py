@@ -4,6 +4,23 @@ import shutil
 from my_types import TextType, BlockType
 from nodes import TextNode, LeafNode, ParentNode
 
+def generate_page(from_path, template_path, dest_path): 
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    with open(from_path, encoding="utf-8") as file_markdown:
+        markdown = file_markdown.read()
+    with open(template_path, encoding="utf-8") as file_template:
+        template = file_template.read()
+
+    title = extract_title(markdown)
+    html_node = markdown_to_html_node(markdown)
+    html_string = html_node.to_html()
+
+    output_string = template.replace("{{ Title }}", title, 1)
+    output_string = output_string.replace("{{ Content }}", html_string, 1)
+    
+    with open(dest_path, 'w') as dest_file:
+        dest_file.write(output_string)
+
 def extract_title(markdown):
     if len(markdown) < 2 or markdown[:2] != "# ":
         raise Exception(f"not a valid markdown title: {markdown}")
@@ -54,9 +71,15 @@ def markdown_to_html_node(markdown):
                 parent.children.append(block_parent) # type: ignore
             case BlockType.QUOTE:
                 block_parent = ParentNode("blockquote", [])
-                textnodes = block_to_textnodes(block, 1)
-                for textnode in textnodes:
-                    block_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
+                lines = block.split("\n")
+                for (i, line) in enumerate(lines):
+                    line = line[1:]
+                    line = line.strip()
+                    if i != 0:
+                        line = " " + line
+                    textnodes = text_to_textnodes(line)
+                    for textnode in textnodes:
+                        block_parent.children.append(text_node_to_html_node(textnode)) # type: ignore
                 parent.children.append(block_parent) # type: ignore
             case BlockType.UNORDERED_LIST:
                 block_parent = ParentNode("ul", [])
@@ -84,12 +107,12 @@ def markdown_to_html_node(markdown):
                 raise ValueError(f"unexpected BlockType {block_type.value}")
     return parent
 
-def block_to_textnodes(block, remove_begin_line=0):
+def block_to_textnodes(block):
     textnodes = []
     lines = block.split("\n")
     for (i, line) in enumerate(lines):
-        line = line[remove_begin_line:]
-        if i != 0 and line[0] != " ":
+        line = line.strip()
+        if i != 0 and len(line) != 0:
             line = " " + line #replaces single \n with whitespaces
         textnodes += text_to_textnodes(line)
     return textnodes
