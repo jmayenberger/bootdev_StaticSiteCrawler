@@ -4,6 +4,13 @@ import shutil
 from my_types import TextType, BlockType
 from nodes import TextNode, LeafNode, ParentNode
 
+def extract_title(markdown):
+    if len(markdown) < 2 or markdown[:2] != "# ":
+        raise Exception(f"not a valid markdown title: {markdown}")
+    if len(markdown) == 2:
+        return ""
+    return markdown[2:]
+
 def copy_directory_recursive(source, destination):
     if not os.path.exists(destination):
         print(f"create directory {destination}")
@@ -20,10 +27,6 @@ def copy_directory_recursive(source, destination):
             copy_directory_recursive(filepath, new_destination)
         else:
             raise Exception(f"unexpected file type {filepath}")
-        
-    
-
-
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)

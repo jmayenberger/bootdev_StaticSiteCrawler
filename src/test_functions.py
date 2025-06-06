@@ -4,11 +4,35 @@ from nodes import LeafNode, TextNode
 from functions import (
     text_node_to_html_node, split_nodes_delimiter, extract_markdown_images,
     extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes,
-    markdown_to_blocks, block_to_blocktype, markdown_to_html_node)
+    markdown_to_blocks, block_to_blocktype, markdown_to_html_node, extract_title)
 
 
 
 class TestFunctions(unittest.TestCase):
+    def test_extract_title(self):
+        markdowns = []
+        expects = []
+        markdowns.append("# ")
+        expects.append("")
+        markdowns.append("# this is a title")
+        expects.append("this is a title")
+        markdowns.append("# #hello hello")
+        expects.append("#hello hello")
+
+        error_markdowns = []
+        error_expects = []
+        error_markdowns.append("this is not a title")
+        error_expects.append(Exception)
+        error_markdowns.append("#this is also not a title")
+        error_expects.append(Exception)
+        error_markdowns.append("## this is not the right title")
+        error_expects.append(Exception)
+
+        for (i, markdown) in enumerate(markdowns):
+            self.assertEqual(extract_title(markdown), expects[i])
+        for (i, error) in enumerate(error_markdowns):
+            self.assertRaises(error_expects[i], extract_title, *error)
+
     def test_markdown_to_html_node(self):
         lst_markdown = []
         lst_expects = []
